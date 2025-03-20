@@ -66,4 +66,4 @@
 
 Если у вас есть вопросы или предложения, свяжитесь со мной:  
 📧 Email: osipchuk.ls@phystech.edu
-🌐 GitHub: [ваш-username](https://github.com/LidyOS)
+🌐 GitHub: [LidyOS](https://github.com/LidyOS)
