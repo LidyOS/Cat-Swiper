@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'cat_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:homework_1/domain/entities/cat.dart';
 
 class DetailScreen extends StatelessWidget {
   final Cat cat;
@@ -20,6 +20,10 @@ class DetailScreen extends StatelessWidget {
               imageUrl: cat.imageUrl,
               width: double.infinity,
               fit: BoxFit.cover,
+              placeholder:
+                  (context, url) =>
+                      const Center(child: CircularProgressIndicator()),
+              errorWidget: (context, url, error) => const Icon(Icons.error),
             ),
             const SizedBox(height: 16),
             _buildInfoRow('Origin', cat.breed.origin),
