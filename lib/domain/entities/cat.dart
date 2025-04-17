@@ -6,7 +6,7 @@ class Cat extends Equatable {
   final Breed breed;
   final DateTime likedAt;
 
-  const Cat({
+  Cat({
     required this.id,
     required this.imageUrl,
     required this.breed,
