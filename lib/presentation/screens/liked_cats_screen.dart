@@ -14,6 +14,15 @@ class LikedCatsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Liked Cats'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+            if (context.read<CatCubit>().state is! CatLoaded) {
+              context.read<CatCubit>().fetchCat();
+            }
+          },
+        ),
       ),
       body: BlocBuilder<CatCubit, CatState>(
         builder: (context, state) {

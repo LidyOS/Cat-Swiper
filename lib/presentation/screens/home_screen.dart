@@ -31,23 +31,22 @@ class HomeScreen extends StatelessWidget {
           BlocBuilder<CatCubit, CatState>(
             builder: (context, state) {
               final likedCats = context.read<CatCubit>().getFilteredLikedCats();
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LikedCatsScreen(),
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.favorite, color: Colors.red),
-                      const SizedBox(width: 4),
-                      Text('${likedCats.length}'),
-                    ],
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LikedCatsScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.favorite, color: Colors.red),
+                  label: Text('Liked (${likedCats.length})'),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.black87,
+                    backgroundColor: Colors.white,
                   ),
                 ),
               );
@@ -81,10 +80,19 @@ class HomeScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           } else if (state is CatError) {
             return const Center(child: Text('Error loading cat'));
-          } else if (state is CatLoaded || state is CatLiked) {
-            final cat = state is CatLoaded
-                ? state.cat
-                : (state as CatLiked).cat;
+          } else if (state is CatLoaded || state is CatLiked || state is CatUnliked || state is CatFiltered) {
+            final cat = state is CatLoaded 
+                ? state.cat 
+                : state is CatLiked 
+                    ? state.cat 
+                    : context.read<CatCubit>().state is CatLoaded 
+                        ? (context.read<CatCubit>().state as CatLoaded).cat
+                        : null;
+                        
+            if (cat == null) {
+              context.read<CatCubit>().fetchCat();
+              return const Center(child: CircularProgressIndicator());
+            }
             
             return GestureDetector(
               onPanEnd: (details) => _handleSwipe(context, details),
