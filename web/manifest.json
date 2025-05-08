@@ -1,11 +1,11 @@
 {
-    "name": "homework_1",
-    "short_name": "homework_1",
+    "name": "Cat-Swiper",
+    "short_name": "Cat-Swiper",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "homeework_1 in flutter_course2025",
+    "description": "homework in flutter_course2025",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
