@@ -28,12 +28,44 @@ class LikedCatsScreen extends StatelessWidget {
           final likedCats = catCubit.getFilteredLikedCats();
           final breeds = catCubit.getBreeds();
 
+          if (!state.isConnected) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Offline Mode - Your liked cats are still available',
+                ),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+
           if (likedCats.isEmpty) {
             return const Center(child: Text('No liked cats yet'));
           }
 
           return Column(
             children: [
+              if (!state.isConnected)
+                Container(
+                  width: double.infinity,
+                  color: Colors.orange.shade100,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.wifi_off, color: Colors.orange),
+                      SizedBox(width: 8),
+                      Text(
+                        'Offline Mode',
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: DropdownButtonFormField<String>(

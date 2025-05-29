@@ -5,9 +5,36 @@ import 'package:homework_1/presentation/cubits/cat_cubit.dart';
 import 'package:homework_1/presentation/screens/detail_screen.dart';
 import 'package:homework_1/presentation/screens/liked_cats_screen.dart';
 import 'package:homework_1/presentation/widgets/action_button.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+      ConnectivityResult result,
+    ) {
+      if (mounted) {
+        context.read<CatCubit>().checkConnectivity();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription.cancel();
+    super.dispose();
+  }
 
   void _handleSwipe(BuildContext context, DragEndDetails details) {
     if (details.primaryVelocity == null) return;
@@ -55,30 +82,55 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       body: BlocConsumer<CatCubit, CatState>(
+        listenWhen: (previous, current) {
+          return previous.isConnected != current.isConnected ||
+              current is CatError;
+        },
         listener: (context, state) {
           if (state is CatError) {
-            showDialog(
-              context: context,
-              builder:
-                  (context) => AlertDialog(
-                    title: const Text('Error'),
-                    content: Text(state.message),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          context.read<CatCubit>().fetchCat();
-                        },
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                duration: const Duration(seconds: 3),
+                action: SnackBarAction(
+                  label: 'Повторить',
+                  onPressed: () {
+                    context.read<CatCubit>().fetchCat();
+                  },
+                ),
+              ),
+            );
+            context.read<CatCubit>().fetchCat();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  state.isConnected
+                      ? 'Подключение к интернету восстановлено'
+                      : 'Нет подключения к интернету. Работаем в оффлайн режиме',
+                ),
+                backgroundColor:
+                    state.isConnected ? Colors.green : Colors.orange,
+                duration: const Duration(seconds: 2),
+              ),
             );
           }
         },
         builder: (context, state) {
           if (state is CatLoading || state is CatInitial) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading cat...',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ),
+            );
           } else if (state is CatError) {
             return const Center(child: Text('Error loading cat'));
           } else if (state is CatLoaded ||
@@ -103,6 +155,26 @@ class HomeScreen extends StatelessWidget {
               onPanEnd: (details) => _handleSwipe(context, details),
               child: Column(
                 children: [
+                  if (!state.isConnected)
+                    Container(
+                      width: double.infinity,
+                      color: Colors.orange.shade100,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.wifi_off, color: Colors.orange),
+                          SizedBox(width: 8),
+                          Text(
+                            'Offline Mode',
+                            style: TextStyle(
+                              color: Colors.orange,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -149,7 +221,10 @@ class HomeScreen extends StatelessWidget {
                       ),
                       ActionButton(
                         icon: Icons.favorite,
-                        color: Colors.green,
+                        color:
+                            state is CatLoaded && state.isLiked
+                                ? Colors.red
+                                : Colors.green,
                         onPressed: () {
                           context.read<CatCubit>().likeCat(cat);
                           context.read<CatCubit>().fetchCat();
